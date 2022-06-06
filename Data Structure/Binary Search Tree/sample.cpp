@@ -4,16 +4,35 @@
 #include <iostream>
 #include "CBinaryTree.h"
 #include <list>
+#include <vector>
 
 using namespace std;
 void Check(ST_NODE* root);
 void Test(int startNum, int range, int insertNum);
+int getDepth(ST_NODE* root, int depth);
+
+int keyList[1000];
 
 static list<int>::iterator iter;
 
 int main()
 {
-    Test(50, 10, 5000);
+    Test(50, 10, 20);
+}
+
+void setKeyList(ST_NODE* root, int idx)
+{
+    if (!root)
+        return;
+
+    keyList[idx] = root->key;
+
+    if (root->left)
+        setKeyList(root->left, idx * 2);
+    else keyList[idx * 2] = -1;
+    if (root->right)
+        setKeyList(root->right, idx * 2 + 1);
+    else keyList[idx * 2 + 1] = -1;
 }
 
 void Test(int startNum, int range, int insertNum)
@@ -29,6 +48,32 @@ void Test(int startNum, int range, int insertNum)
             testNumList.push_back(testNum);
         }
         cout << " >> inserted " << i << " numbers" << endl;
+
+#ifdef __VISUALIZE__
+        int depth = getDepth(tree.getRoot(), 0);
+        cout << " >> BST depth is :: " << depth << endl;
+
+        memset(keyList, 0xffffffff, sizeof(keyList));
+        setKeyList(tree.getRoot(), 1);
+
+        int idx = 1;
+        for (int i = 0; i < depth + 1; i++) {
+            int t = pow(2, i);
+            int size = (40 / t);
+            for (int j = 0; j < t; j++) {
+                for (int k = 0; k < size; k++) printf(" ");
+                cout << "[";
+                if (keyList[idx + j] == -1)
+                    cout << "  ";
+                else
+                    printf("%2d", keyList[idx + j]);
+                cout << "]";
+                for (int k = 0; k < size - 1; k++) printf(" ");
+            }
+            idx += t;
+            cout << endl;
+        }
+#endif
 
         testNumList.sort();
 
@@ -57,6 +102,22 @@ void Test(int startNum, int range, int insertNum)
     }
 
     cout << endl << "## TEST ALL CLEAR" << endl;
+}
+
+int getDepth(ST_NODE* root, int depth) {
+
+    int depthRight = depth;
+    int depthLeft = depth;
+    if (root->left || root->right) {
+        depth++;
+        if (root->right)
+            depthRight = getDepth(root->right, depth);
+        if (root->left)
+            depthLeft = getDepth(root->left, depth);
+    }
+    if (depthRight >= depth && depthRight >= depthLeft) return depthRight;
+    if (depthLeft >= depth && depthLeft >= depthRight) return depthLeft;
+    return depth;
 }
 
 void Check(ST_NODE* root) {
