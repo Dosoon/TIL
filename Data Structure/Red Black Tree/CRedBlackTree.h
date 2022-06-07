@@ -82,7 +82,7 @@ public:
 			} // 부모의 형제 노드가 BLACK이라면
 			else {
 				// 부모가 조부모의 왼쪽 노드라면
-				if (PParentNode->left = ParentNode) {
+				if (PParentNode->left == ParentNode) {
 					// 현재 노드가 부모의 오른쪽 노드라면
 					if (ParentNode->right == curr) {
 						// 부모 기준 좌회전
@@ -94,12 +94,17 @@ public:
 					// 다시 우회전
 					rotateRight(ParentNode);
 					NODE_COLOR temp = ParentNode->color;
-					ParentNode->color = PParentNode->color;
-					PParentNode->color = temp;
+					if (PParentNode)
+					{
+						ParentNode->color = PParentNode->color;
+						PParentNode->color = temp;
+					}
+					else
+						ParentNode->color = BLACK;
 
 				}
 				// 부모가 조부모의 오른쪽 노드라면
-				else if (PParentNode->right = ParentNode) {
+				else if (PParentNode->right == ParentNode) {
 					// 현재 노드가 부모의 왼쪽 노드라면
 					if (ParentNode->left == curr) {
 						// 부모 기준 우회전
@@ -111,8 +116,12 @@ public:
 					// 다시 좌회전
 					rotateLeft(ParentNode);
 					NODE_COLOR temp = ParentNode->color;
-					ParentNode->color = PParentNode->color;
-					PParentNode->color = temp;
+					if (PParentNode)
+					{
+						ParentNode->color = PParentNode->color;
+						PParentNode->color = temp;
+					}
+					else ParentNode->color = BLACK;
 				}
 			}
 		}
@@ -125,6 +134,18 @@ public:
 		ST_NODE* currRightNode = curr->right;
 		ST_NODE* currParentNode = curr->parent;
 
+		if (!currParentNode)
+		{
+			// 루트 노드일 경우
+			curr->right = currRightNode->left;
+			currRightNode->left->parent = curr;
+
+			currRightNode->left = curr;
+			curr->parent = currRightNode;
+
+			_pRoot = currLeftNode;
+			return;
+		}
 		if (currParentNode->left == curr)
 		{
 			// curr 노드가 내려간다
@@ -140,6 +161,13 @@ public:
 			currParentNode->right = currLeftNode;
 			currLeftNode->parent = currParentNode;
 			curr->parent = currParentNode->parent;
+			if (currParentNode->parent)
+			{
+				if (currParentNode->parent->left == currParentNode)
+					currParentNode->parent->left = curr;
+				if (currParentNode->parent->right == currParentNode)
+					currParentNode->parent->right = curr;
+			}
 			curr->left = currParentNode;
 			currParentNode->parent = curr;
 			
@@ -153,18 +181,19 @@ public:
 		ST_NODE* currLeftNode = curr->left;
 		ST_NODE* currParentNode = curr->parent;
 
-		if (currParentNode->left == curr)
+		if (!currParentNode)
 		{
-			// curr 노드가 올라간다
-			currParentNode->left = currRightNode;
-			currRightNode->parent = currParentNode;
-			curr->parent = currParentNode->parent;
-			curr->right = currParentNode;
-			currParentNode->parent = curr;
+			// 루트 노드일 경우
+			curr->left = currLeftNode->right;
+			currLeftNode->right->parent = curr;
 
-			if (_pRoot == currParentNode)
-				_pRoot = curr;
+			currLeftNode->right = curr;
+			curr->parent = currLeftNode;
+
+			_pRoot = currLeftNode;
+			return;
 		}
+
 		if (currParentNode->right == curr)
 		{
 			// curr 노드가 내려간다
@@ -173,6 +202,25 @@ public:
 			curr->left = currLeftNode->right;
 			currLeftNode->parent = currParentNode;
 			currLeftNode->right = curr;
+		}
+		if (currParentNode->left == curr)
+		{
+			// curr 노드가 올라간다
+			currParentNode->left = currRightNode;
+			currRightNode->parent = currParentNode;
+			curr->parent = currParentNode->parent;
+			if (currParentNode->parent)
+			{
+				if (currParentNode->parent->left == currParentNode)
+					currParentNode->parent->left = curr;
+				if (currParentNode->parent->right == currParentNode)
+					currParentNode->parent->right = curr;
+			}
+			curr->right = currParentNode;
+			currParentNode->parent = curr;
+
+			if (_pRoot == currParentNode)
+				_pRoot = curr;
 		}
 	}
 
@@ -222,18 +270,21 @@ public:
 		if (!_pRoot)
 			return nullptr;
 
-		if (curr->right)
+		if (curr->left != &NIL)
+			if (curr->left->key == key)
+				return getNode(key, curr->left);
+		if (curr->right != &NIL)
 			if (curr->right->key == key)
 				return getNode(key, curr->right);
 		if (curr->key == key)
 			return curr;
 		else {
 			if (curr->key > key)
-				if (curr->left)
+				if (curr->left != &NIL)
 					return getNode(key, curr->left);
 				else return nullptr;
 			else
-				if (curr->right)
+				if (curr->right != &NIL)
 					return getNode(key, curr->right);
 				else return nullptr;
 		}
@@ -256,14 +307,56 @@ public:
 			if (target == _pRoot)
 			{
 				// 루트 노드만 있을 경우
-				if (!(target->left || target->right)) {
+				if (!(target->left != &NIL || target->right != &NIL)) {
 					_pRoot = nullptr;
 					free(target);
 					return true;
 				}
 
+				// 자식이 1개라면 (왼쪽 혹은 오른쪽 자식만 있다면)
+				// 왼쪽 자식
+				if (target->left != &NIL && target->right == &NIL)
+				{
+					ST_NODE* childNode = target->left;
+					childNode->parent = nullptr;
+					_pRoot = childNode;
+					_pRoot->color = BLACK;
+
+					free(target);
+					return true;
+				}
+				if (target->left == &NIL && target->right != &NIL)
+				{
+					ST_NODE* childNode = target->right;
+					childNode->parent = nullptr;
+					_pRoot = childNode;
+					_pRoot->color = BLACK;
+
+					free(target);
+					return true;
+				}
+				// 삭제 노드의 자식이 2개라면
+				if (target->left != &NIL && target->right != &NIL)
+				{
+					// 삭제하려는 노드의 왼쪽 서브트리 최대값을 대체 노드로
+					ST_NODE* instead = getMaxSubTree(target->left);
+
+					// 선조건 체크
+					// 최종 삭제 노드의 자식이 두개라면 삭제할 수 없음
+					if (instead->left != &NIL && instead->right != &NIL)
+						return false;
+
+					// 값 복사
+					target->key = instead->key;
+
+					// instead 노드를 기준으로 밸런싱 시작
+
+					balancingDelete(instead);
+					return true;
+				}
+
 				// 루트 노드에게 자식이 있는 경우
-				if (target->left) {
+				/*if (target->left != &NIL) {
 					ST_NODE* instead = getMaxSubTree(target->left);
 
 					// 서브 트리 중 최대값이 루트 노드의 왼쪽 자식이라면
@@ -277,9 +370,9 @@ public:
 					}
 					else {
 						if (instead->parent->left == instead)
-							instead->parent->left = nullptr;
+							instead->parent->left = &NIL;
 						else if (instead->parent->right == instead)
-							instead->parent->right = nullptr;
+							instead->parent->right = &NIL;
 						else return false;
 
 						target->key = instead->key;
@@ -291,10 +384,76 @@ public:
 					_pRoot = target->right;
 					free(target);
 					return true;
-				}
+				}*/
 			}
 
-			// 삭제 노드의 자식이 없는 경우
+
+			// 삭제 노드가 자식이 없거나 1개
+			// 없다면
+			if (!(target->left != &NIL || target->right != &NIL)) {
+				/*if (target->parent->left == target)
+					target->parent->left = &NIL;
+				else if (target->parent->right == target)
+					target->parent->right = &NIL;
+				else return false;*/
+				balancingDelete(target);
+				return true;
+			}
+			// 자식이 1개라면 (왼쪽 혹은 오른쪽 자식만 있다면)
+			if (target->left != &NIL && target->right == &NIL)
+			{
+				//ST_NODE* childNode = target->left;
+
+				/*if (target->parent->left == target)
+					target->parent->left = childNode;
+				else if (target->parent->right == target)
+					target->parent->right = childNode;
+				else return false;*/
+
+				//childNode->parent = target->parent;
+
+				balancingDelete(target);
+				return true;
+			}
+			if (target->left == &NIL && target->right != &NIL)
+			{
+				//ST_NODE* childNode = target->right;
+
+				/*if (target->parent->left == target)
+					target->parent->left = childNode;
+				else if (target->parent->right == target)
+					target->parent->right = childNode;
+				else return false;*/
+
+				//childNode->parent = target->parent;
+
+				balancingDelete(target);
+				return true;
+			}
+
+			// 삭제 노드의 자식이 2개라면
+			if (target->left != &NIL && target->right != &NIL)
+			{
+				// 삭제하려는 노드의 왼쪽 서브트리 최대값을 대체 노드로
+				ST_NODE* instead = getMaxSubTree(target->left);
+
+				// 선조건 체크
+				// 최종 삭제 노드의 자식이 두개라면 삭제할 수 없음
+				if (instead->left != &NIL && instead->right != &NIL)
+					return false;
+
+				// 값 복사
+				target->key = instead->key;
+
+				// instead 노드를 기준으로 밸런싱 시작
+
+				balancingDelete(instead);
+				return true;
+			}
+
+
+
+			/*// 삭제 노드의 자식이 없는 경우
 			if (!(target->left || target->right)) {
 				if (target->parent->left == target)
 					target->parent->left = nullptr;
@@ -342,13 +501,209 @@ public:
 
 			}
 			else return false;
+			*/
 		}
 
 		return false;
 	}
 
+	void balancingDelete(ST_NODE* curr) {
+		ST_NODE* parentNode = curr->parent;
+
+		// 1. 삭제하려는 노드가 RED라면
+		if (curr->color == RED)
+		{
+			// 자식이 없다면
+			if (curr->left == &NIL && curr->right == &NIL)
+			{
+				if (parentNode->left == curr)
+					parentNode->left = &NIL;
+				else if (parentNode->right == curr)
+					parentNode->right = &NIL;
+				free(curr);
+				return;
+			}
+			// 왼쪽 자식이 있다면
+			if (curr->left != &NIL && curr->right == &NIL)
+			{
+				if (parentNode->left == curr)
+					parentNode->left = curr->left;
+				else if (parentNode->right == curr)
+					parentNode->right = curr->left;
+
+				curr->left->parent = parentNode;
+				free(curr);
+				return;
+			}
+			// 오른쪽 자식이 있다면
+			if (curr->right != &NIL && curr->left == &NIL) {
+				if (parentNode->left == curr)
+					parentNode->left = curr->right;
+				else if (parentNode->right == curr)
+					parentNode->right = curr->right;
+
+				curr->right->parent = parentNode;
+				free(curr);
+				return;
+			}
+		}
+
+		// 2. 삭제하려는 노드가 BLACK이라면
+		if (curr->color == BLACK) {
+			// 이외 case는 반복문으로 체크
+			
+			// 우선 노드를 삭제한다
+			
+
+			ST_NODE* sibling = &NIL;
+			ST_NODE* childNode = &NIL;
+			bool onLeftSide = false;
+
+
+			if (curr->left != &NIL && curr->right == &NIL)
+				childNode = curr->left;
+			if (curr->right != &NIL && curr->left == &NIL)
+				childNode = curr->right;
+
+			if (curr->color == RED)
+				std::cout << "curr->color RED Error" << std::endl;
+			
+			if (parentNode->left == curr)
+			{
+				onLeftSide = true;
+				sibling = parentNode->right;
+				parentNode->left = childNode;
+			}
+			else if (parentNode->right == curr)
+			{
+				onLeftSide = false;
+				sibling = parentNode->left;
+				parentNode->right = childNode;
+			}
+
+			childNode->parent = parentNode;
+
+			// 불균형 발생
+			// curr에서부터 검사를 시작한다
+
+			ST_NODE* pNode = curr;
+
+			while (pNode != _pRoot)
+			{
+				// 2-1. 유일한 자식이 RED라면
+				// 연결해주고 자식을 BLACK으로 바꿔 해결 완료
+				if (childNode->color == RED) {
+					childNode->color = BLACK;
+					break;
+				}
+				/*if (pNode->left->color == RED || pNode->right->color == RED) {
+					// 왼쪽 자식이라면
+					if (pNode->left != &NIL && pNode->right == &NIL)
+					{
+						/*if (parentNode->left == pNode)
+							parentNode->left = pNode->left;
+						else if (parentNode->right == pNode)
+							parentNode->right = pNode->left;
+
+						pNode->left->parent = parentNode;
+						pNode->left->color = BLACK;
+						free(pNode);
+						pNode->left->color = BLACK;
+						return;
+					}
+					// 오른쪽 자식이라면
+					if (pNode->right != &NIL && pNode->left == &NIL) {
+						/*if (parentNode->left == pNode)
+							parentNode->left = pNode->right;
+						else if (parentNode->right == pNode)
+							parentNode->right = pNode->right;
+
+						pNode->right->parent = parentNode;
+						pNode->right->color = BLACK;
+						free(pNode);
+						pNode->right->color = BLACK;
+						return;
+					}
+				}*/
+
+				// 2-2. 형제 노드가 레드 :: 형제를 블랙으로 바꿔준다
+				if (sibling->color == RED)
+				{
+					sibling->color = BLACK;
+					if (onLeftSide)
+						rotateLeft(sibling);
+					else
+						rotateRight(sibling);
+					parentNode->color = RED;
+					if (onLeftSide)
+						sibling = parentNode->right;
+					else sibling = parentNode->left;
+					continue;
+				}
+				// 2-3. 형제 블랙, 형제의 모든 자식 블랙 :: 형제를 레드로 해서 밸런싱을 맞춰주고, 부모 노드로 재검사
+				if (sibling->color == BLACK && (sibling->left->color == BLACK && sibling->right->color == BLACK))
+				{
+					sibling->color = RED;
+					pNode = parentNode;
+					parentNode = pNode->parent;
+					childNode = pNode;
+					if (pNode == _pRoot)
+						break;
+					if (parentNode->left == pNode)
+					{
+						onLeftSide = true;
+						sibling = parentNode->right;
+					}
+					if (parentNode->right == pNode)
+					{
+						onLeftSide = false;
+						sibling = parentNode->left;
+					}
+					continue;
+				}
+				// 2-4. 형제 블랙, 형제의 왼자식(혹은 오른자식)이 레드 :: 왼자식(혹은 오른자식)을 블랙,
+				//														  그 부모인 형제를 레드, 형제 기준 우회전(혹은 좌회전)
+				if (onLeftSide && sibling->color == BLACK && sibling->left->color == RED && sibling->right->color == BLACK)
+				{
+					sibling->left->color = BLACK;
+					sibling->color = RED;
+					rotateRight(sibling);
+
+					sibling = parentNode->right;
+				}
+				if (!onLeftSide && sibling->color == BLACK && sibling->right->color == RED && sibling->left->color == BLACK) {
+					sibling->right->color = BLACK;
+					sibling->color = RED;
+					rotateLeft(sibling);
+
+					sibling = parentNode->left;
+				}
+				// 2-5. 형제 블랙, 형제의 오른자식(혹은 왼자식)이 레드
+				// :: 오른자식(혹은 왼자식)을 블랙, 형제를 부모 컬러로, 부모를 블랙으로, 부모 기준 좌회전(혹은 우회전)
+				if (onLeftSide && sibling->color == BLACK && sibling->right->color == RED)
+				{
+					sibling->right->color = BLACK;
+					sibling->color = parentNode->color;
+					parentNode->color = BLACK;
+					rotateLeft(sibling);
+					break;
+				}
+				if (!onLeftSide && sibling->color == BLACK && sibling->left->color == RED)
+				{
+					sibling->left->color = BLACK;
+					sibling->color = parentNode->color;
+					parentNode->color = BLACK;
+					rotateRight(sibling);
+					break;
+				}
+			}
+		}
+		free(curr);
+		_pRoot->color = BLACK;
+	}
+
 	ST_NODE* getMaxSubTree(ST_NODE* root) {
-		if (root->right)
+		if (root->right != &NIL)
 			return getMaxSubTree(root->right);
 		else {
 			return root;
@@ -360,9 +715,9 @@ public:
 			return;
 
 		std::cout << root->key << " ";
-		if (root->left)
+		if (root->left != &NIL)
 			printPreorder(root->left);
-		if (root->right)
+		if (root->right != &NIL)
 			printPreorder(root->right);
 	}
 
@@ -370,10 +725,10 @@ public:
 		if (!root)
 			return;
 
-		if (root->left)
+		if (root->left != &NIL)
 			printInorder(root->left);
 		std::cout << root->key << " ";
-		if (root->right)
+		if (root->right != &NIL)
 			printInorder(root->right);
 	}
 
@@ -381,9 +736,9 @@ public:
 		if (!root)
 			return;
 
-		if (root->left)
+		if (root->left != &NIL)
 			printPostorder(root->left);
-		if (root->right)
+		if (root->right != &NIL)
 			printPostorder(root->right);
 		std::cout << root->key << " ";
 	}

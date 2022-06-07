@@ -8,13 +8,90 @@ int main()
 {
     CRedBlackTree tree;
 
+    /*tree.insertNode(8);
+    tree.insertNode(7);
+    tree.insertNode(2);
+    tree.insertNode(9);
+    tree.insertNode(4);
+    tree.insertNode(10);
+    tree.insertNode(1);
     tree.insertNode(5);
+    tree.insertNode(3);
+
+    tree.deleteNode(2);
+    tree.deleteNode(4);
+    tree.deleteNode(8);
+    tree.deleteNode(3);*/
+    /*tree.insertNode(5);
+    tree.insertNode(8);
+    tree.insertNode(20);
+    tree.insertNode(26);
+    tree.insertNode(14);
+    tree.insertNode(7);
+    tree.insertNode(2);
+    tree.insertNode(30);
+    tree.insertNode(45);
+    tree.insertNode(20);
+    tree.insertNode(10);
+
+
+    tree.deleteNode(7);
+    tree.deleteNode(30);
+    tree.deleteNode(8);
+    tree.deleteNode(20);
+    tree.deleteNode(14);
+    tree.deleteNode(26);*/
+
+    /*tree.insertNode(1);
     tree.insertNode(2);
     tree.insertNode(3);
-    tree.insertNode(8);
     tree.insertNode(4);
+    tree.insertNode(5);
     tree.insertNode(6);
+    tree.insertNode(7);
+    tree.insertNode(8);
+    tree.insertNode(9);
+    tree.insertNode(10);
+
+    tree.deleteNode(5);
+    tree.deleteNode(8);*/
+
+    /*tree.insertNode(10);
+    tree.insertNode(9);
+    tree.insertNode(8);
+    tree.insertNode(7);
+    tree.insertNode(6);
+    tree.insertNode(5);
+    tree.insertNode(4);
+    tree.insertNode(3);
+    tree.insertNode(2);
     tree.insertNode(1);
+    tree.insertNode(0);
+
+    tree.deleteNode(7);
+    tree.deleteNode(3);
+    tree.deleteNode(6);
+    tree.deleteNode(5);
+    tree.deleteNode(4);
+    tree.deleteNode(tree.getRoot()->key);
+    tree.deleteNode(tree.getRoot()->key);
+    tree.deleteNode(tree.getRoot()->key);
+    tree.deleteNode(tree.getRoot()->key);
+    tree.deleteNode(tree.getRoot()->key);
+    tree.deleteNode(tree.getRoot()->key);*/
+
+    /*tree.insertNode(10);
+    tree.insertNode(10);
+    tree.insertNode(10);
+    tree.insertNode(10);
+    tree.insertNode(10);
+    tree.insertNode(10);
+    tree.insertNode(10);
+
+    tree.deleteNode(10);
+    tree.deleteNode(10);*/
+    
+    std::cout << "Paused" << std::endl;
 }
 
 // 프로그램 실행: <Ctrl+F5> 또는 [디버그] > [디버깅하지 않고 시작] 메뉴
