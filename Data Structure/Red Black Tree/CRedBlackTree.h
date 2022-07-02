@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <vector>
 
 enum NODE_COLOR {
 	RED = 0,
@@ -152,10 +153,11 @@ public:
 			currParentNode->left = currRightNode;
 			curr->parent = currRightNode;
 			curr->right = currRightNode->left;
+			currRightNode->left->parent = curr;
 			currRightNode->parent = currParentNode;
 			currRightNode->left = curr;
 		}
-		if (currParentNode->right == curr)
+		else if (currParentNode->right == curr)
 		{
 			// curr 노드가 올라간다
 			currParentNode->right = currLeftNode;
@@ -170,9 +172,12 @@ public:
 			}
 			curr->left = currParentNode;
 			currParentNode->parent = curr;
-			
+
 			if (_pRoot == currParentNode)
 				_pRoot = curr;
+		}
+		else {
+			throw;
 		}
 	}
 
@@ -200,10 +205,11 @@ public:
 			currParentNode->right = currLeftNode;
 			curr->parent = currLeftNode;
 			curr->left = currLeftNode->right;
+			currLeftNode->right->parent = curr;
 			currLeftNode->parent = currParentNode;
 			currLeftNode->right = curr;
 		}
-		if (currParentNode->left == curr)
+		else if (currParentNode->left == curr)
 		{
 			// curr 노드가 올라간다
 			currParentNode->left = currRightNode;
@@ -221,6 +227,9 @@ public:
 
 			if (_pRoot == currParentNode)
 				_pRoot = curr;
+		}
+		else {
+			throw;
 		}
 	}
 
@@ -551,9 +560,9 @@ public:
 		// 2. 삭제하려는 노드가 BLACK이라면
 		if (curr->color == BLACK) {
 			// 이외 case는 반복문으로 체크
-			
+
 			// 우선 노드를 삭제한다
-			
+
 
 			ST_NODE* sibling = &NIL;
 			ST_NODE* childNode = &NIL;
@@ -567,7 +576,7 @@ public:
 
 			if (curr->color == RED)
 				std::cout << "curr->color RED Error" << std::endl;
-			
+
 			if (parentNode->left == curr)
 			{
 				onLeftSide = true;
@@ -641,7 +650,7 @@ public:
 					continue;
 				}
 				// 2-3. 형제 블랙, 형제의 모든 자식 블랙 :: 형제를 레드로 해서 밸런싱을 맞춰주고, 부모 노드로 재검사
-				if (sibling->color == BLACK && (sibling->left->color == BLACK && sibling->right->color == BLACK))
+				if (sibling->color == BLACK && ((sibling == &NIL) || (sibling->left->color == BLACK && sibling->right->color == BLACK)))
 				{
 					sibling->color = RED;
 					pNode = parentNode;
@@ -743,8 +752,55 @@ public:
 		std::cout << root->key << " ";
 	}
 
+	void getLevelorder(std::vector<ST_NODE*> &nodeList) {
+		nodeList.clear();
+
+		nodeList.push_back(_pRoot);
+		std::vector<ST_NODE*>::iterator iter = nodeList.begin();
+		//++iter;
+
+		while (iter != nodeList.end()) {
+			if (*iter && (*iter)->left)
+			{
+				nodeList.push_back((*iter)->left);
+			}
+			else
+			{
+				nodeList.push_back(nullptr);
+			}
+			if (*iter && (*iter)->right)
+			{
+				nodeList.push_back((*iter)->right);
+			}
+			else
+			{
+				nodeList.push_back(nullptr);
+			}
+
+			std::vector<ST_NODE*>::iterator iter2 = iter;
+			bool keep = false;
+			iter2++;
+			for (; iter2 != nodeList.end(); iter2++)
+			{
+				if ((*iter2 != &NIL) && (*iter2 != nullptr))
+					keep = true;
+			}
+
+			if (!keep) return;
+
+			iter++;
+		}
+
+		return;
+	}
+
 	ST_NODE* getRoot()
 	{
 		return _pRoot;
+	}
+
+	bool isNIL(ST_NODE* node)
+	{
+		return node == &NIL;
 	}
 };
